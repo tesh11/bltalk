@@ -1,5 +1,6 @@
 # Django settings for bltalk project.
 import os
+from mongoengine import connect
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -21,6 +22,15 @@ DATABASES = {
         'HOST': '',                      # Set to empty string for localhost. Not used with sqlite3.
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
     }
+}
+
+MONGO_DATABASES = {
+    'bltalk': {
+        'USERNAME': '',
+        'PASSWORD': '',
+        'HOST': '',
+        'PORT': '',
+    },
 }
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
@@ -130,11 +140,18 @@ INSTALLED_APPS = (
     # 'django.contrib.admindocs',
 
     'south',
+    'mongonaut',
 
     'core',
 )
 
 LOGIN_REDIRECT_URL = '/'
+
+AUTHENTICATION_BACKENDS = (
+    'mongoengine.django.auth.MongoEngineBackend',
+)
+
+SESSION_ENGINE = 'mongoengine.django.sessions'
 
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
@@ -167,3 +184,6 @@ LOGGING = {
 
 #noinspection PyUnresolveReferences
 from local_settings import *
+
+for key, value in MONGO_DATABASES.items():
+    connect(key, username=value['USERNAME'], password=value['PASSWORD'], host=value['HOST'], port=int(value['PORT']))

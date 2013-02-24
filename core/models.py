@@ -1,18 +1,27 @@
-from django.contrib.auth.models import User
-from django.db import models
+import datetime
+from mongoengine import Document, ReferenceField, StringField, DateTimeField, FloatField
+from mongoengine.django.auth import User
 
 
-class SessionData(models.Model):
-    user = models.ForeignKey(User, blank=True, null=True)
-    session_id = models.CharField(max_length=255, unique=True)
-    last_update_timestamp = models.DateTimeField(auto_now=True)
+class SessionData(Document):
+    user = ReferenceField(User, required=False)
+    session_id = StringField(max_length=255, unique=True)
+    last_update_timestamp = DateTimeField(default=datetime.datetime.now)
 
-    zipcode = models.CharField(max_length=5, blank=True, null=True)
+    zipcode = StringField(max_length=5, required=False)
+
+    meta = {
+        'indexes': ['user', ]
+    }
 
 
-class Listing(models.Model):
-    owner = models.ForeignKey(User)
-    title = models.CharField(max_length=255)
-    description = models.TextField()
-    amount = models.FloatField()
-    zipcode = models.CharField(max_length=5, db_index=True)
+class Listing(Document):
+    owner = ReferenceField(User)
+    title = StringField(max_length=255)
+    description = StringField()
+    amount = FloatField()
+    zipcode = StringField(max_length=5)
+
+    meta = {
+        'indexes': ['owner', 'zipcode']
+    }

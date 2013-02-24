@@ -11,3 +11,11 @@ DATABASES = {
     }
 }
 
+MONGO_DATABASES = {
+    'bltalk': {
+        'USERNAME': '',
+        'PASSWORD': '',
+        'HOST': '',
+        'PORT': '',
+        },
+    }

@@ -16,21 +16,23 @@ def index(request, *args, **kwargs):
         request.session.save()
 
     if request.user.is_authenticated():
-        session_data, created = SessionData.objects.get_or_create(user=request.user)
+        session_data, created = SessionData.objects.get_or_create(user=request.user, auto_save=False)
         if not session_data.session_id:
             session_data.session_id = request.session.session_key
     else:
         session_data, created = SessionData.objects.get_or_create(session_id=request.session.session_key)
 
-    session_data.save(force_update=True)
+    session_data.save()
 
     if request.method == 'POST':
-        zipcode_form = ZipcodeForm(request.POST, instance=session_data)
+        zipcode_form = ZipcodeForm(request.POST)
         if zipcode_form.is_valid():
-            zipcode_form.save()
-            return HttpResponseRedirect(reverse('index'))
+            cleaned_data = zipcode_form.cleaned_data
+            session_data.zipcode = cleaned_data['zipcode']
+            session_data.save()
+            return HttpResponseRedirect(reverse('blindex'))
     else:
-        zipcode_form = ZipcodeForm(instance=session_data)
+        zipcode_form = ZipcodeForm(session_data.to_mongo())
 
     # put together the listings. if there is a zip, filter the values. otherwise, return them all sorted by price
     # ascending
@@ -50,7 +52,7 @@ def login(request, *args, **kwargs):
     response = django_login(request, *args, **kwargs)
 
     if request.user.is_authenticated():
-        SessionData.objects.filter(session_id=request.session.session_key).update(user=request.user)
+        SessionData.objects.filter(session_id=request.session.session_key).update(set__user=request.user)
 
     return response
 
@@ -59,10 +61,15 @@ def login(request, *args, **kwargs):
 def new_listing(request, *args, **kwargs):
     if request.method == "POST":
         listing = Listing(owner=request.user)
-        listing_form = ListingForm(request.POST, instance=listing)
+        listing_form = ListingForm(request.POST)
         if listing_form.is_valid():
-            listing_form.save()
-            return HttpResponseRedirect(reverse('index'))
+            cleaned_data = listing_form.cleaned_data
+            listing.title = cleaned_data['title']
+            listing.description = cleaned_data['description']
+            listing.amount = cleaned_data['amount']
+            listing.zipcode = cleaned_data['zipcode']
+            listing.save()
+            return HttpResponseRedirect(reverse('blindex'))
     else:
         listing_form = ListingForm()
 

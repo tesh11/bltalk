@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block body %}
+    <form action="{% url index %}" method="POST">
+        {% csrf_token %}
+        {{ zipcode_form }}
+        <input type="submit" value="Save" />
+    </form>
+
+    <h2>Listings</h2>
+    {% for listing in listings %}
+        <p>
+            <span style="float: right; text-align: right;">${{ listing.amount|floatformat:2 }}</span>
+            <span>{{ listing.title }}</span><br/>
+            <span>{{ listing.description }}</span>
+        </p>
+    {% endfor %}
+{% endblock %}

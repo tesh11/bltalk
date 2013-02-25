@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import login as django_login
 from django.core.urlresolvers import reverse
@@ -5,7 +6,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from core.forms import ZipcodeForm, ListingForm
-from core.models import SessionData, Listing
+from core import models
 
 
 def index(request, *args, **kwargs):
@@ -16,28 +17,32 @@ def index(request, *args, **kwargs):
         request.session.save()
 
     if request.user.is_authenticated():
-        session_data, created = SessionData.objects.get_or_create(user=request.user)
-        if not session_data.session_id:
-            session_data.session_id = request.session.session_key
+        models.set_session_data(settings.DB, request.user, request.session.session_key, set_zipcode=False)
+        session_data = models.get_session_data_by_user(settings.DB, request.user)
     else:
-        session_data, created = SessionData.objects.get_or_create(session_id=request.session.session_key)
-
-    session_data.save(force_update=True)
+        models.set_session_data(settings.DB, None, request.session.session_key, set_zipcode=False)
+        session_data = models.get_session_data_by_session_id(settings.DB, request.session.session_key)
 
     if request.method == 'POST':
-        zipcode_form = ZipcodeForm(request.POST, instance=session_data)
+        zipcode_form = ZipcodeForm(request.POST)
         if zipcode_form.is_valid():
-            zipcode_form.save()
+            cleaned_data = zipcode_form.cleaned_data
+            if request.user.is_authenticated():
+                models.set_session_data(settings.DB, request.user, request.session.session_key, cleaned_data['zipcode'])
+            else:
+                models.set_session_data(settings.DB, None, request.session.session_key, cleaned_data['zipcode'])
             return HttpResponseRedirect(reverse('index'))
     else:
-        zipcode_form = ZipcodeForm(instance=session_data)
+        zipcode = session_data['zipcode']
+        zipcode_form = ZipcodeForm({'zipcode': zipcode if zipcode else ''})
 
     # put together the listings. if there is a zip, filter the values. otherwise, return them all sorted by price
     # ascending
-    listings = Listing.objects.all()
-    if session_data.zipcode:
-        listings = listings.filter(zipcode=session_data.zipcode)
-    listings = listings.order_by('amount')
+    if session_data['zipcode']:
+        listings = models.get_listing_by_zipcode(settings.DB, session_data['zipcode'])
+    else:
+        listings = models.get_all_listings(settings.DB)
+    listings.sort(key=lambda x: float(x['amount']))
 
     return render_to_response('index.html', RequestContext(request, {
         'zipcode_form': zipcode_form,
@@ -50,7 +55,8 @@ def login(request, *args, **kwargs):
     response = django_login(request, *args, **kwargs)
 
     if request.user.is_authenticated():
-        SessionData.objects.filter(session_id=request.session.session_key).update(user=request.user)
+        # TODO: technically we should delete the anon data
+        models.set_session_data(settings.DB, request.user, request.session.session_key, set_zipcode=False)
 
     return response
 
@@ -58,10 +64,11 @@ def login(request, *args, **kwargs):
 @login_required
 def new_listing(request, *args, **kwargs):
     if request.method == "POST":
-        listing = Listing(owner=request.user)
-        listing_form = ListingForm(request.POST, instance=listing)
+        listing_form = ListingForm(request.POST)
         if listing_form.is_valid():
-            listing_form.save()
+            cleaned_data = listing_form.cleaned_data
+            models.set_listing(settings.DB, request.user, cleaned_data['title'], cleaned_data['description'],
+                               cleaned_data['amount'], cleaned_data['zipcode'])
             return HttpResponseRedirect(reverse('index'))
     else:
         listing_form = ListingForm()

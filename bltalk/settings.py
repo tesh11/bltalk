@@ -136,6 +136,10 @@ INSTALLED_APPS = (
 
 LOGIN_REDIRECT_URL = '/'
 
+AUTHENTICATION_BACKENDS = (
+    'core.auth.FoundationDBBackend',
+)
+
 # A sample logging configuration. The only tangible logging
 # performed by this configuration is to send an email to
 # the site admins on every HTTP 500 error when DEBUG=False.
@@ -167,3 +171,7 @@ LOGGING = {
 
 #noinspection PyUnresolveReferences
 from local_settings import *
+
+import fdb
+fdb.api_version(21)
+DB = fdb.open()

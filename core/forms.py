@@ -1,14 +1,12 @@
-from django.forms import ModelForm
-from core.models import SessionData, Listing
+from django.forms import Form, CharField, FloatField
 
 
-class ZipcodeForm(ModelForm):
-    class Meta:
-        model = SessionData
-        fields = ('zipcode', )
+class ZipcodeForm(Form):
+    zipcode = CharField(max_length=5, required=False)
 
 
-class ListingForm(ModelForm):
-    class Meta:
-        model = Listing
-        fields = ('title', 'description', 'amount', 'zipcode')
+class ListingForm(Form):
+    title = CharField(max_length=255)
+    description = CharField()
+    amount = FloatField()
+    zipcode = CharField(max_length=5)

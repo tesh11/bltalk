@@ -11,7 +11,7 @@
     {% for listing in listings %}
         <p>
             <span style="float: right; text-align: right;">${{ listing.amount|floatformat:2 }}</span>
-            <span>{{ listing.title }}</span><br/>
+            <span>{{ listing.title }}</span> - <span>{{ listing.owner }}</span><br/>
             <span>{{ listing.description }}</span>
         </p>
     {% endfor %}

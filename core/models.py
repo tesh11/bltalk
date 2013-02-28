@@ -4,7 +4,7 @@ from mongoengine.django.auth import User
 
 
 class SessionData(Document):
-    user = ReferenceField(User, required=False)
+    user = ReferenceField(User, required=False, dbref=True)
     session_id = StringField(max_length=255, unique=True)
     last_update_timestamp = DateTimeField(default=datetime.datetime.now)
 
@@ -16,7 +16,7 @@ class SessionData(Document):
 
 
 class Listing(Document):
-    owner = ReferenceField(User)
+    owner = ReferenceField(User, dbref=True)
     title = StringField(max_length=255)
     description = StringField()
     amount = FloatField()

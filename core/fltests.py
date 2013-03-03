@@ -41,13 +41,12 @@ class Basic(FunkLoadTestCase):
         self.post('%s/' % self.server_url, params=[('zipcode', self._random_zipcode())],
                   description="search by zipcode")
 
-        # 6. create 10 listings (each listing is duplicated)
-        for i in range(0, 10):
-            self.get('%s/listing/new/' % self.server_url, description='view new listing page')
-            self.post('%s/listing/new/' % self.server_url, params=[['title', self._random_string()],
-                                                                   ['description', self._random_string()],
-                                                                   ['amount', random.random() * 100.0],
-                                                                   ['zipcode', self._random_zipcode()]])
+        # 6. create a listing
+        self.get('%s/listing/new/' % self.server_url, description='view new listing page')
+        self.post('%s/listing/new/' % self.server_url, params=[['title', self._random_string()],
+                                                               ['description', self._random_string()],
+                                                               ['amount', random.random() * 100.0],
+                                                               ['zipcode', self._random_zipcode()]])
 
         # 7. view list as user
         self.get('%s/' % self.server_url, description="view list as user")

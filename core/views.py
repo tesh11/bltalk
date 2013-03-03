@@ -1,3 +1,5 @@
+import random
+import string
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required
@@ -18,6 +20,9 @@ from django.contrib.auth import login as auth_login
 
 from core.forms import ZipcodeForm, ListingForm
 from core.models import SessionData, Listing
+
+
+ZIPCODES = ['78701', '78702', '78703', '78704', '78705']
 
 
 @csrf_exempt
@@ -120,11 +125,7 @@ def new_listing(request, *args, **kwargs):
         listing = Listing(owner=request.user)
         listing_form = ListingForm(request.POST, instance=listing)
         if listing_form.is_valid():
-            # duplicate each listing 20 times to populate data more quickly
             listing_form.save()
-            for i in range(0, 200):
-                listing.pk = None
-                listing.save()
             return HttpResponseRedirect(reverse('index'))
     else:
         listing_form = ListingForm()
@@ -146,4 +147,19 @@ def setup_test(request, *args, **kwargs):
         u = 'user%d' % i
         User.objects.create_user(u, None, u)
 
+    # now, create 1mm listings
+    listings = 10000 * [None]
+    for i in range(0, 100):
+        print ".",
+        for j in range(0, 10000):
+            listings[j] = Listing(title=_random_string(), description=_random_zipcode(), amount=random.random() * 100.0,
+                                  zipcode=_random_zipcode())
+        Listing.objects.bulk_create(listings)
+
     return HttpResponse("OK")
+
+def _random_string(max_length=200):
+    return ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(max_length))
+
+def _random_zipcode():
+    return ZIPCODES[int(random.random() * len(ZIPCODES))]

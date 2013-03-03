@@ -10,7 +10,7 @@ class Basic(FunkLoadTestCase):
         self.server_url = self.conf_get('main', 'url')
 
         # reset the db state via a get call
-        self.get('%s/setup_test/' % self.server_url)
+        #self.get('%s/setup_test/' % self.server_url)
 
     def setUp(self):
         self.server_url = self.conf_get('main', 'url')

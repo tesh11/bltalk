@@ -122,7 +122,7 @@ def new_listing(request, *args, **kwargs):
         if listing_form.is_valid():
             # duplicate each listing 20 times to populate data more quickly
             listing_form.save()
-            for i in range(0, 20):
+            for i in range(0, 200):
                 listing.pk = None
                 listing.save()
             return HttpResponseRedirect(reverse('index'))

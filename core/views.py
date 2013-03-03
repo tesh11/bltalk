@@ -143,9 +143,10 @@ def setup_test(request, *args, **kwargs):
     User.objects.exclude(username='admin').delete()
 
     # create 10 test users
+    users = 10 * [None]
     for i in range(1, 11):
         u = 'user%d' % i
-        User.objects.create_user(u, None, u)
+        users[i-1] = User.objects.create_user(u, None, u)
 
     # now, create 1mm listings
     listings = 10000 * [None]
@@ -153,7 +154,7 @@ def setup_test(request, *args, **kwargs):
         print ".",
         for j in range(0, 10000):
             listings[j] = Listing(title=_random_string(), description=_random_zipcode(), amount=random.random() * 100.0,
-                                  zipcode=_random_zipcode())
+                                  zipcode=_random_zipcode(), owner=users[int(random.random() * 10)])
         Listing.objects.bulk_create(listings)
 
     return HttpResponse("OK")

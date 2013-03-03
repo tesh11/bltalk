@@ -1,9 +1,11 @@
 import random
 import string
 import sys
+from bson import json_util
 
-from django.contrib.auth.models import User
 from django.core.management import BaseCommand
+from mongoengine.django.auth import User
+from core.models import Listing
 
 
 ZIPCODES = ['78701', '78702', '78703', '78704', '78705']
@@ -16,7 +18,7 @@ class Command(BaseCommand):
         with open(args[1], 'w') as out:
             num_rows = int(args[0])
 
-            users = User.objects.exclude(username='admin')
+            users = User.objects.filter(username__ne='admin')
 
             for i in xrange(0, num_rows):
                 if i % 1000 == 0:
@@ -24,8 +26,9 @@ class Command(BaseCommand):
                     sys.stdout.flush()
 
                 # title, description, zipcode, amount, owner
-                print>>out, "\t".join((_random_string(), _random_string(1000), _random_zipcode(),
-                                       str(random.random() * 100.0), _random_user(users)))
+                l = Listing(title=_random_string(), description=_random_string(1000), zipcode=_random_zipcode(),
+                            amount=random.random() * 100.0, owner=_random_user(users))
+                print>>out, json_util.dumps(l.to_mongo())
 
 
 def _random_string(max_length=200):
@@ -37,4 +40,4 @@ def _random_zipcode():
 
 
 def _random_user(users):
-    return str(users[int(random.random() * 10)].id)
+    return users[int(random.random() * 10)]

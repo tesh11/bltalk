@@ -1,5 +1,3 @@
-import random
-import string
 from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required
@@ -20,9 +18,6 @@ from django.contrib.auth import login as auth_login
 
 from core.forms import ZipcodeForm, ListingForm
 from core.models import SessionData, Listing
-
-
-ZIPCODES = ['78701', '78702', '78703', '78704', '78705']
 
 
 @csrf_exempt
@@ -146,7 +141,7 @@ def setup_test(request, *args, **kwargs):
     users = 10 * [None]
     for i in range(1, 11):
         u = 'user%d' % i
-        users[i-1] = User.objects.create_user(u, None, u)
+        users[i - 1] = User.objects.create_user(u, None, u)
 
     # now, create 1mm listings
     # listings = 10000 * [None]
@@ -158,9 +153,3 @@ def setup_test(request, *args, **kwargs):
     #     Listing.objects.bulk_create(listings)
 
     return HttpResponse("OK")
-
-def _random_string(max_length=200):
-    return ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(max_length))
-
-def _random_zipcode():
-    return ZIPCODES[int(random.random() * len(ZIPCODES))]

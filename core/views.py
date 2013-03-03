@@ -120,7 +120,11 @@ def new_listing(request, *args, **kwargs):
         listing = Listing(owner=request.user)
         listing_form = ListingForm(request.POST, instance=listing)
         if listing_form.is_valid():
+            # duplicate each listing 20 times to populate data more quickly
             listing_form.save()
+            for i in range(0, 20):
+                listing.pk = None
+                listing.save()
             return HttpResponseRedirect(reverse('index'))
     else:
         listing_form = ListingForm()

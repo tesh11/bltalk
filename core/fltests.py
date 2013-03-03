@@ -41,8 +41,8 @@ class Basic(FunkLoadTestCase):
         self.post('%s/' % self.server_url, params=[('zipcode', self._random_zipcode())],
                   description="search by zipcode")
 
-        # 6. create 10 listings
-        for i in range(0, 10):
+        # 6. create 150 listings
+        for i in range(0, 150):
             self.get('%s/listing/new/' % self.server_url, description='view new listing page')
             self.post('%s/listing/new/' % self.server_url, params=[['title', self._random_string()],
                                                                    ['description', self._random_string()],

@@ -19,7 +19,8 @@ def deploy_staging():
 @task
 def git_pull_develop():
     with cd('/web/bltalk'):
-        run('git pull origin master')
+        run('git checkout mongo')
+        run('git pull origin mongo')
 
 
 @task

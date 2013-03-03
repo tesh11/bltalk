@@ -2,10 +2,8 @@ from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.models import User
-from django.contrib.sites.models import get_current_site
+from django.contrib.sites.models import RequestSite
 from django.core.urlresolvers import reverse
-from django.db import connection, transaction
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -15,6 +13,7 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.debug import sensitive_post_parameters
 from django.contrib.auth import login as auth_login
+from mongoengine.django.auth import User
 
 from core.forms import ZipcodeForm, ListingForm
 from core.models import SessionData, Listing
@@ -101,7 +100,7 @@ def django_login(request, template_name='registration/login.html',
 
     request.session.set_test_cookie()
 
-    current_site = get_current_site(request)
+    current_site = RequestSite(request)
 
     context = {
         'form': form,
@@ -137,18 +136,15 @@ def new_listing(request, *args, **kwargs):
 
 def setup_test(request, *args, **kwargs):
     # clear out the users, sessiondata and listings
-    cursor = connection.cursor()
-    cursor.execute('truncate table core_listing')
-    cursor.execute('truncate table core_sessiondata')
-    transaction.commit_unless_managed()
-
-    User.objects.exclude(username='admin').delete()
+    Listing.objects.delete()
+    SessionData.objects.delete()
+    User.objects.filter(username__ne='admin').delete()
 
     # create 10 test users
     users = 10 * [None]
     for i in range(1, 11):
         u = 'user%d' % i
-        users[i - 1] = User.objects.create_user(u, None, u)
+        users[i - 1] = User.create_user(u, u, None)
 
     # now, create 1mm listings
     # listings = 10000 * [None]

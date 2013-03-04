@@ -19,6 +19,7 @@ def deploy_staging():
 @task
 def git_pull_develop():
     with cd('/web/bltalk'):
+        run('git checkout master')
         run('git pull origin master')
 
 

@@ -51,7 +51,7 @@ def index(request, *args, **kwargs):
     listings = Listing.objects.all()
     if session_data.zipcode:
         listings = listings.filter(zipcode=session_data.zipcode)
-    listings = listings.order_by('amount').select_related()[:10]
+    listings = listings.order_by('amount').limit(10).select_related()
 
     return render_to_response('index.html', RequestContext(request, {
         'zipcode_form': zipcode_form,

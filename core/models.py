@@ -23,5 +23,5 @@ class Listing(Document):
     zipcode = StringField(max_length=5)
 
     meta = {
-        'indexes': ['owner', 'zipcode']
+        'indexes': ['owner', 'zipcode', 'amount']
     }

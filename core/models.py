@@ -16,6 +16,11 @@ def table_get_cell(tr, table, row, column):
 
 
 @fdb.transactional
+def table_clear_row(tr, table, row):
+    del tr[fdb.tuple.range((table, row, ))]
+
+
+@fdb.transactional
 def table_set_row(tr, table, row, cols):
     del tr[fdb.tuple.range((table, row, ))]
     for c, v in cols.iteritems():
@@ -119,6 +124,30 @@ def get_listing_by_zipcode_sorted_by_amount(tr, zipcode, limit=0):
 def clear_data(tr):
     del tr['':'\xFF']
 
+
+@fdb.transactional
+def get_active_session_by_key(tr, session_key, curr_time):
+    row = table_get_row(tr, 'session', session_key)
+    if not row:
+        return None
+
+    expire_date = datetime.datetime.strptime(row['expire_date'], '%Y-%m-%d %H:%M:%S')
+    if expire_date <= curr_time:
+        table_clear_row(tr, 'session', session_key)
+        return None
+    else:
+        return row['session_data']
+
+
+@fdb.transactional
+def save_session(tr, session):
+    table_set_row(tr, 'session', session.session_key, {'session_data': session.session_data,
+                                                       'expire_date': session.expire_date.strftime('%Y-%m-%d %H:%M:%S')})
+
+
+@fdb.transactional
+def delete_session(tr, session_key):
+    table_clear_row(tr, 'session', session_key)
 
 # class SessionData(models.Model):
 #     user = models.ForeignKey(User, blank=True, null=True)

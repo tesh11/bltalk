@@ -19,8 +19,8 @@ def deploy_staging():
 @task
 def git_pull_develop():
     with cd('/web/bltalk'):
-        run('git checkout master')
-        run('git pull origin master')
+        run('git checkout fdb')
+        run('git pull origin fdb')
 
 
 @task

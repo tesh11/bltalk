@@ -96,19 +96,29 @@ def set_listing(tr, owner, title, description, amount, zipcode):
                                               'amount': str(amount),
                                               'zipcode': zipcode,
                                               })
-    tr[fdb.tuple.pack(('listing_idx', listing_id))] = ''
-    tr[fdb.tuple.pack(('listing_zipcode_idx', zipcode, listing_id))] = ''
+    padded_amount = '%010d' % (amount * 10000000)
+    tr[fdb.tuple.pack(('listing_idx', padded_amount, listing_id))] = ''
+    tr[fdb.tuple.pack(('listing_zipcode_idx', zipcode, padded_amount, listing_id))] = ''
 
 
 @fdb.transactional
-def get_all_listings(tr):
-    items = tr[fdb.tuple.range(('listing_idx', ))]
+def get_all_listings_sorted_by_amount(tr, limit=0):
+    key_slice = fdb.tuple.range(('listing_idx', ))
+    items = tr.get_range(key_slice.start, key_slice.stop, limit)
     return [table_get_row(tr, 'listing', fdb.tuple.unpack(k)[-1]) for k, v in items]
 
+
 @fdb.transactional
-def get_listing_by_zipcode(tr, zipcode):
-    items = tr[fdb.tuple.range(('listing_zipcode_idx', unicode(zipcode)))]
+def get_listing_by_zipcode_sorted_by_amount(tr, zipcode, limit=0):
+    key_slice = fdb.tuple.range(('listing_zipcode_idx', unicode(zipcode)))
+    items = tr.get_range(key_slice.start, key_slice.stop, limit)
     return [table_get_row(tr, 'listing', fdb.tuple.unpack(k)[-1]) for k, v in items]
+
+
+@fdb.transactional
+def clear_data(tr):
+    del tr['':'\xFF']
+
 
 # class SessionData(models.Model):
 #     user = models.ForeignKey(User, blank=True, null=True)

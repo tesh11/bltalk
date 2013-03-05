@@ -2,10 +2,8 @@ from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth.models import User
 from django.contrib.sites.models import get_current_site
 from django.core.urlresolvers import reverse
-from django.db import connection, transaction
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
@@ -51,10 +49,9 @@ def index(request, *args, **kwargs):
     # put together the listings. if there is a zip, filter the values. otherwise, return them all sorted by price
     # ascending
     if session_data['zipcode']:
-        listings = models.get_listing_by_zipcode(settings.DB, session_data['zipcode'])
+        listings = models.get_listing_by_zipcode_sorted_by_amount(settings.DB, session_data['zipcode'], 10)
     else:
-        listings = models.get_all_listings(settings.DB)
-    listings.sort(key=lambda x: float(x['amount']))
+        listings = models.get_all_listings_sorted_by_amount(settings.DB, 10)
 
     return render_to_response('index.html', RequestContext(request, {
         'zipcode_form': zipcode_form,
@@ -136,18 +133,13 @@ def new_listing(request, *args, **kwargs):
 
 def setup_test(request, *args, **kwargs):
     # clear out the users, sessiondata and listings
-    cursor = connection.cursor()
-    cursor.execute('truncate table core_listing')
-    cursor.execute('truncate table core_sessiondata')
-    transaction.commit_unless_managed()
-
-    User.objects.exclude(username='admin').delete()
+    models.clear_data(settings.DB)
 
     # create 10 test users
     users = 10 * [None]
     for i in range(1, 11):
-        u = 'user%d' % i
-        users[i - 1] = User.objects.create_user(u, None, u)
+        u = u'user%d' % i
+        users[i - 1] = models.set_user(settings.DB, u, u)
 
     # now, create 1mm listings
     # listings = 10000 * [None]

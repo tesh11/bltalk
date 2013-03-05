@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.sites.models import get_current_site
+from django.contrib.sites.models import RequestSite
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
@@ -101,7 +101,7 @@ def django_login(request, template_name='registration/login.html',
 
     request.session.set_test_cookie()
 
-    current_site = get_current_site(request)
+    current_site = RequestSite(request)
 
     context = {
         'form': form,

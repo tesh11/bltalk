@@ -1,9 +1,11 @@
 import random
 import string
 import sys
+from django.conf import settings
 
-from django.contrib.auth.models import User
 from django.core.management import BaseCommand
+from core import models
+from core.auth import User
 
 
 ZIPCODES = ['78701', '78702', '78703', '78704', '78705']
@@ -13,19 +15,16 @@ class Command(BaseCommand):
     args = '<num rows> <filename>'
 
     def handle(self, *args, **options):
-        with open(args[1], 'w') as out:
-            num_rows = int(args[0])
+        num_rows = int(args[0])
 
-            users = User.objects.exclude(username='admin')
+        users = models.get_users(settings.DB)
 
-            for i in xrange(0, num_rows):
-                if i % 1000 == 0:
-                    sys.stdout.write(".")
-                    sys.stdout.flush()
-
-                # title, description, zipcode, amount, owner
-                print>>out, "\t".join((_random_string(), _random_string(1000), _random_zipcode(),
-                                       str(random.random() * 100.0), _random_user(users)))
+        for i in xrange(0, num_rows):
+            models.set_listing(settings.DB, _random_user(users), _random_string(), _random_string(1000),
+                               random.random() * 100.0, _random_zipcode())
+            if i % 1000 == 0:
+                sys.stdout.write(".")
+                sys.stdout.flush()
 
 
 def _random_string(max_length=200):
@@ -37,4 +36,4 @@ def _random_zipcode():
 
 
 def _random_user(users):
-    return str(users[int(random.random() * 10)].id)
+    return User(users[int(random.random() * 10)])

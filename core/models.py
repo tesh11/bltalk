@@ -88,6 +88,12 @@ def get_user(db, username):
         return {'username': username}
 
 
+@fdb.transactional
+def get_users(tr):
+    items = tr[fdb.tuple.range(('user', ))]
+    return [fdb.tuple.unpack(k)[1] for k, v in items]
+
+
 def check_password_match(db, username, password):
     return check_password(password, table_get_cell(db, 'user', username, 'password'))
 

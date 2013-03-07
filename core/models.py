@@ -14,5 +14,5 @@ class Listing(models.Model):
     owner = models.ForeignKey(User)
     title = models.CharField(max_length=255)
     description = models.TextField()
-    amount = models.FloatField()
+    amount = models.FloatField(db_index=True)
     zipcode = models.CharField(max_length=5, db_index=True)
